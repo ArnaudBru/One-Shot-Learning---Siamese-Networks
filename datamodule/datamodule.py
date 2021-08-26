@@ -171,13 +171,16 @@ class LFWDataModule(pl.LightningDataModule):
 def main():
     """Simple script showcasing how the Dataset & DataModule work"""
 
-    data_path = "..\\data\\lfw"
+    data_path = "data\\lfw"
+    abs_path = os.path.dirname(os.path.realpath(__file__))
+    abs_path = os.path.abspath(os.path.join(abs_path, os.pardir, data_path))
+
     min_images = 30
 
     def imshow_tensor(image: Tensor) -> None:
         plt.imshow(transforms.ToPILImage()(image), interpolation="bicubic")
 
-    data_module = LFWDataModule(data_path, min_images=min_images)
+    data_module = LFWDataModule(abs_path, min_images=min_images)
     data_module.setup()
 
     for dataloader in [
