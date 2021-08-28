@@ -3,12 +3,11 @@ Dataset & DataModule for Labeled Faces in the Wild,
 a public benchmark for face verification, also known as pair matching.
 """
 import os
-from typing import Callable, List, Optional, Tuple, Union
+import random
+from typing import Callable, List, Optional, Tuple
 
 import numpy as np
 import pytorch_lightning as pl
-import torch
-from sklearn.preprocessing import LabelEncoder
 from torch import Tensor
 from torch.utils.data import DataLoader, Dataset
 from torch.utils.data.sampler import SubsetRandomSampler
@@ -21,10 +20,8 @@ class LFWImageDataset(Dataset):
     """
 
     Attributes:
-        file_list (List[str]):
-        image_dir (str):
-        label_enc (LabelEncoder):
-        label_list (List[int]):
+        files_dico (dict):
+        length (int):
         transform (transforms):
     """
 
@@ -37,51 +34,76 @@ class LFWImageDataset(Dataset):
 
         assert min_files >= 0
 
-        file_list = []
-        str_label_list = []
+        files_dico = {}
+        length = 0
 
+        # Add files if the class contains enough samples
         for root, _, files in os.walk(root_dir):
             if len(files) > min_files:
-                file_list.extend(
-                    [
-                        os.path.join(root, name)
-                        for name in files
-                        if name.endswith(".jpg")
-                    ]
-                )
+                files_dico[os.path.basename(root)] = [
+                    os.path.join(root, name) for name in files if name.endswith(".jpg")
+                ]
 
-                str_label_list.extend(
-                    [os.path.basename(root) for name in files if name.endswith(".jpg")]
-                )
+                length += len(files)
 
-        self.file_list = file_list
+        self.files_dico = files_dico
+        self.length = length
 
-        self.label_enc = LabelEncoder()
-        self.label_list = torch.as_tensor(self.label_enc.fit_transform(str_label_list))
-
-        self.image_dir = root_dir
         self.transform = transform
 
     def __len__(self) -> int:
-        return len(self.file_list)
+        return self.length
 
     def __getitem__(self, idx: int) -> Tuple[Tensor, int]:
-        image_path = os.path.join(self.file_list[idx])
-        image = read_image(image_path)
-        label = self.label_list[idx]
+        same_class = not random.getrandbits(1)
+        label = int(same_class)
+
+        if same_class:
+            multi_image_class = self.select_multi_image_class(self.files_dico)
+            image_1, image_2 = random.sample(self.files_dico[multi_image_class], k=2)
+
+        else:
+            class_1, class_2 = self.select_distinct_classes(self.files_dico)
+            # Select two distinct images
+            image_1 = random.choice(self.files_dico[class_1])
+            image_2 = random.choice(self.files_dico[class_2])
+
+        image_1 = read_image(image_1)
+        image_2 = read_image(image_2)
 
         if self.transform:
-            image = self.transform(image)
+            image_1 = self.transform(image_1)
+            image_2 = self.transform(image_2)
 
-        return image, label
+        return image_1, image_2, label
 
-    def get_label_encoder(self) -> LabelEncoder:
-        """
+    @staticmethod
+    def select_multi_image_class(dictionnary: dict) -> str:
+        """Select class containing multiple samples
+
+        Args:
+            dictionnary (dict):
 
         Returns:
-            LabelEncoder
+            str
         """
-        return self.label_enc
+        while True:
+            multi_image_class = random.choice(list(dictionnary.keys()))
+            if len(dictionnary[multi_image_class]) >= 2:
+                break
+        return multi_image_class
+
+    @staticmethod
+    def select_distinct_classes(dictionnary: dict) -> List[str]:
+        """Select two distinct classes from dictionnary's keys
+
+        Args:
+            dictionnary (dict):
+
+        Returns:
+            List[str]
+        """
+        return random.sample(list(dictionnary.keys()), k=2)
 
 
 class LFWDataModule(pl.LightningDataModule):
@@ -109,7 +131,6 @@ class LFWDataModule(pl.LightningDataModule):
         super().__init__()
         self.data_dir = data_dir
         self.lfw_dataset = None
-        self.label_enc = None
         self.batch_size = batch_size
         self.min_images = min_images
 
@@ -124,7 +145,6 @@ class LFWDataModule(pl.LightningDataModule):
         """Dataset creation, Shuffle & split"""
 
         self.lfw_dataset = LFWImageDataset(self.data_dir, min_files=self.min_images)
-        self.label_enc = self.lfw_dataset.get_label_encoder()
 
         shuffled_indices = np.random.permutation(len(self.lfw_dataset))
 
@@ -153,20 +173,6 @@ class LFWDataModule(pl.LightningDataModule):
             self.lfw_dataset, batch_size=self.batch_size, sampler=test_sampler
         )
 
-    def decode_labels(self, labels: Union[List[int], int]) -> List[str]:
-        """
-
-        Args:
-            labels (Union[List[int], int]):
-
-        Returns:
-            List[str]
-        """
-        if isinstance(labels, int):
-            labels = [labels]
-
-        return self.label_enc.inverse_transform(labels)
-
 
 def main():
     """Simple script showcasing how the Dataset & DataModule work"""
@@ -188,14 +194,17 @@ def main():
         data_module.val_dataloader(),
         data_module.test_dataloader(),
     ]:
-        features, labels = next(iter(dataloader))
-        print(f"Feature batch shape: {features.size()}")
+        images_1, images_2, labels = next(iter(dataloader))
+        print(f"Feature batch shape: {images_1.size()}")
         print(f"Labels batch shape: {labels.size()}")
-        image = features[0].squeeze()
+        image_1 = images_1[0].squeeze()
+        image_2 = images_2[0].squeeze()
         label = labels[0]
-        imshow_tensor(image)
+        imshow_tensor(image_1)
+        plt.figure()
+        imshow_tensor(image_2)
         plt.show()
-        print(f"Label: {data_module.decode_labels(label.tolist())}")
+        print(f"Label: {label}")
 
 
 if __name__ == "__main__":
