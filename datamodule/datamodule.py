@@ -106,33 +106,30 @@ class LFWImageDataset(Dataset):
         return random.sample(list(dictionnary.keys()), k=2)
 
 
-class LFWDataModule(pl.LightningDataModule):
+class PairwiseDataModule(pl.LightningDataModule):
 
     """
-
     Attributes:
-        batch_size (int):
-        data_dir (str):
-        label_enc (LabelEncoder):
-        lfw_dataset (Dataset):
-        train_size (float):
-        val_size (float):
+        batch_size (int)
+        paired_dataset (Dataset):
+        test_idx (List):
+        train_idx (List):
+        train_size (float)
+        val_idx (List):
+        val_size (float)
     """
 
     def __init__(
         self,
-        data_dir: str = "path/to/dir",
+        paired_dataset: Dataset,
         batch_size: Optional[int] = 64,
         train_size: Optional[float] = 0.8,
         val_size: Optional[float] = 0.1,
-        min_images: Optional[int] = 0,
     ) -> None:
 
         super().__init__()
-        self.data_dir = data_dir
-        self.lfw_dataset = None
+        self.paired_dataset = paired_dataset
         self.batch_size = batch_size
-        self.min_images = min_images
 
         self.train_size = train_size
         self.val_size = val_size
@@ -144,9 +141,7 @@ class LFWDataModule(pl.LightningDataModule):
     def setup(self, stage: Optional[str] = None) -> None:
         """Dataset creation, Shuffle & split"""
 
-        self.lfw_dataset = LFWImageDataset(self.data_dir, min_files=self.min_images)
-
-        shuffled_indices = np.random.permutation(len(self.lfw_dataset))
+        shuffled_indices = np.random.permutation(len(self.paired_dataset))
 
         train_split = int(self.train_size * len(shuffled_indices))
         test_split = int((self.train_size + self.val_size) * len(shuffled_indices))
@@ -158,19 +153,19 @@ class LFWDataModule(pl.LightningDataModule):
     def train_dataloader(self) -> DataLoader:
         train_sampler = SubsetRandomSampler(self.train_idx)
         return DataLoader(
-            self.lfw_dataset, batch_size=self.batch_size, sampler=train_sampler
+            self.paired_dataset, batch_size=self.batch_size, sampler=train_sampler
         )
 
     def val_dataloader(self) -> DataLoader:
         val_sampler = SubsetRandomSampler(self.val_idx)
         return DataLoader(
-            self.lfw_dataset, batch_size=self.batch_size, sampler=val_sampler
+            self.paired_dataset, batch_size=self.batch_size, sampler=val_sampler
         )
 
     def test_dataloader(self) -> DataLoader:
         test_sampler = SubsetRandomSampler(self.test_idx)
         return DataLoader(
-            self.lfw_dataset, batch_size=self.batch_size, sampler=test_sampler
+            self.paired_dataset, batch_size=self.batch_size, sampler=test_sampler
         )
 
 
@@ -186,7 +181,8 @@ def main():
     def imshow_tensor(image: Tensor) -> None:
         plt.imshow(transforms.ToPILImage()(image), interpolation="bicubic")
 
-    data_module = LFWDataModule(abs_path, min_images=min_images)
+    lfw_dataset = LFWImageDataset(abs_path, min_files=min_images)
+    data_module = PairwiseDataModule(lfw_dataset)
     data_module.setup()
 
     for dataloader in [
