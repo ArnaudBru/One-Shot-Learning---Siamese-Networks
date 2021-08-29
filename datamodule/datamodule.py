@@ -59,11 +59,11 @@ class LFWImageDataset(Dataset):
         label = int(same_class)
 
         if same_class:
-            multi_image_class = self.select_multi_image_class(self.files_dico)
+            multi_image_class = self._select_multi_image_class(self.files_dico)
             image_1, image_2 = random.sample(self.files_dico[multi_image_class], k=2)
 
         else:
-            class_1, class_2 = self.select_distinct_classes(self.files_dico)
+            class_1, class_2 = self._select_distinct_classes(self.files_dico)
             # Select two distinct images
             image_1 = random.choice(self.files_dico[class_1])
             image_2 = random.choice(self.files_dico[class_2])
@@ -78,7 +78,7 @@ class LFWImageDataset(Dataset):
         return image_1, image_2, label
 
     @staticmethod
-    def select_multi_image_class(dictionnary: dict) -> str:
+    def _select_multi_image_class(dictionnary: dict) -> str:
         """Select class containing multiple samples
 
         Args:
@@ -94,7 +94,7 @@ class LFWImageDataset(Dataset):
         return multi_image_class
 
     @staticmethod
-    def select_distinct_classes(dictionnary: dict) -> List[str]:
+    def _select_distinct_classes(dictionnary: dict) -> List[str]:
         """Select two distinct classes from dictionnary's keys
 
         Args:
