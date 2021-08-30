@@ -106,7 +106,7 @@ class LFWImageDataset(Dataset):
         return random.sample(list(dictionnary.keys()), k=2)
 
 
-class PairwiseDataModule(pl.LightningDataModule):
+class PairedDataModule(pl.LightningDataModule):
 
     """
     Attributes:
@@ -182,7 +182,7 @@ def main():
         plt.imshow(transforms.ToPILImage()(image), interpolation="bicubic")
 
     lfw_dataset = LFWImageDataset(abs_path, min_files=min_images)
-    data_module = PairwiseDataModule(lfw_dataset)
+    data_module = PairedDataModule(lfw_dataset)
     data_module.setup()
 
     for dataloader in [
