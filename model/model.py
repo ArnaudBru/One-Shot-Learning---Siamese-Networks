@@ -44,30 +44,27 @@ class SiameseNetwork(pl.LightningModule):
     def __init__(self):
         super().__init__()
 
-        self.net = nn.Sequential(
-            nn.Conv2d(3, 64, kernel_size=5, padding=2),
-            nn.ReLU(inplace=True),
-            nn.BatchNorm2d(64),
-            nn.MaxPool2d(2, stride=2),
-            nn.Conv2d(64, 128, kernel_size=5, padding=2),
-            nn.ReLU(inplace=True),
-            nn.BatchNorm2d(128),
-            nn.MaxPool2d(2, stride=2),
-            nn.Conv2d(128, 256, kernel_size=3, padding=1),
-            nn.ReLU(inplace=True),
-            nn.BatchNorm2d(256),
-            nn.MaxPool2d(2, stride=2),
-            nn.Conv2d(256, 512, kernel_size=3, padding=1),
-            nn.ReLU(inplace=True),
-            nn.BatchNorm2d(512),
+        channels = 64
+
+        self.conv_block_1 = ConvolutionBlock(3, channels, kernel_size=5, padding=2, max_pooling=True)
+        self.conv_block_2 = ConvolutionBlock(channels, 2*channels, kernel_size=5, padding=2, max_pooling=True)
+        self.conv_block_3 = ConvolutionBlock(2*channels, 4*channels, kernel_size=3, padding=1, max_pooling=True)
+        self.conv_block_4 = ConvolutionBlock(4*channels, 8*channels, kernel_size=3, padding=1, max_pooling=False)
+
+        self.fc_block = nn.Sequential(
             nn.Flatten(),
-            nn.Linear(256 * 512, 1024),
+            nn.Linear(4*channels * 8*channels, 16*channels),
             nn.ReLU(inplace=True),
-            nn.BatchNorm2d(1024),
+            nn.BatchNorm2d(16*channels),
         )
 
     def forward_one_network(self, x):
-        return self.net(x)
+        x = self.conv_block_1(x)
+        x = self.conv_block_2(x)
+        x = self.conv_block_3(x)
+        x = self.conv_block_4(x)
+        x = self.fc_block(x)
+        return x
 
     def forward(self, x1, x2):
         output1 = self.forward_one_network(x1)
