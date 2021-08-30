@@ -44,6 +44,8 @@ class SiameseNetwork(pl.LightningModule):
     def __init__(self):
         super().__init__()
 
+        self.learning_rate = 1e-4
+
         channels = 64
 
         self.conv_block_1 = ConvolutionBlock(3, channels, kernel_size=5, padding=2, max_pooling=True)
@@ -58,7 +60,7 @@ class SiameseNetwork(pl.LightningModule):
             nn.BatchNorm2d(16*channels),
         )
 
-    def forward_one_network(self, x):
+    def _forward_one_network(self, x):
         x = self.conv_block_1(x)
         x = self.conv_block_2(x)
         x = self.conv_block_3(x)
@@ -67,8 +69,8 @@ class SiameseNetwork(pl.LightningModule):
         return x
 
     def forward(self, x1, x2):
-        output1 = self.forward_one_network(x1)
-        output2 = self.forward_one_network(x2)
+        output1 = self._forward_one_network(x1)
+        output2 = self._forward_one_network(x2)
         return output1, output2
 
     def training_step(self, batch, batch_idx):
@@ -97,3 +99,10 @@ class SiameseNetwork(pl.LightningModule):
     def configure_optimizers(self):
         optimizer = optim.Adam(self.parameters(), lr=self.learning_rate)
         return optimizer
+
+def main():
+    pass
+
+if __name__=="__main__":
+    main()
+
