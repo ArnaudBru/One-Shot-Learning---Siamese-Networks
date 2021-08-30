@@ -1,5 +1,43 @@
+from typing import Optional
+
 import pytorch_lightning as pl
-from torch import nn
+from torch import nn, optim
+
+
+class ConvolutionBlock(nn.Module):
+    def __init__(
+        self,
+        in_channels: int,
+        out_channels: int,
+        kernel_size: int,
+        padding: int,
+        max_pooling: Optional[bool] = True,
+    ) -> None:
+        super(ConvolutionBlock, self).__init__()
+        if max_pooling:
+            self.conv = nn.Sequential(
+                nn.Conv2d(
+                    in_channels, out_channels, kernel_size=kernel_size, padding=padding
+                ),
+                nn.ReLU(inplace=True),
+                nn.BatchNorm2d(out_channels),
+                nn.MaxPool2d(2, stride=2),
+            )
+        else:
+            self.conv = nn.Sequential(
+                nn.Conv2d(
+                    in_channels,
+                    out_channels,
+                    kernel_size=kernel_size,
+                    padding=kernel_size,
+                ),
+                nn.ReLU(inplace=True),
+                nn.BatchNorm2d(out_channels),
+            )
+
+    def forward(self, x):
+        x = self.conv(x)
+        return x
 
 
 class SiameseNetwork(pl.LightningModule):
@@ -60,4 +98,5 @@ class SiameseNetwork(pl.LightningModule):
         return loss
 
     def configure_optimizers(self):
-        pass
+        optimizer = optim.Adam(self.parameters(), lr=self.learning_rate)
+        return optimizer
