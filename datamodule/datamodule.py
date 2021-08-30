@@ -190,6 +190,7 @@ def main():
         data_module.val_dataloader(),
         data_module.test_dataloader(),
     ]:
+        print(f'Length: {len(dataloader)}')
         images_1, images_2, labels = next(iter(dataloader))
         print(f"Feature batch shape: {images_1.size()}")
         print(f"Labels batch shape: {labels.size()}")
