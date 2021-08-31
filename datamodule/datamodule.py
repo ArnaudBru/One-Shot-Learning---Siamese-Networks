@@ -8,6 +8,7 @@ from typing import Callable, List, Optional, Tuple
 
 import numpy as np
 import pytorch_lightning as pl
+import torch
 from torch import Tensor
 from torch.utils.data import DataLoader, Dataset
 from torch.utils.data.sampler import SubsetRandomSampler
@@ -74,6 +75,9 @@ class LFWImageDataset(Dataset):
         if self.transform:
             image_1 = self.transform(image_1)
             image_2 = self.transform(image_2)
+        else:
+            image_1 = transforms.ConvertImageDtype(torch.float)(image_1)
+            image_2 = transforms.ConvertImageDtype(torch.float)(image_2)
 
         return image_1, image_2, label
 
