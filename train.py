@@ -4,6 +4,7 @@ import os
 # import matplotlib.pyplot as plt
 # import pytorch_lightning as pl
 from pytorch_lightning import Trainer
+import torch
 # from torch import Tensor
 # from torchvision import transforms
 
@@ -29,16 +30,19 @@ def main():
 
     min_images = 0
 
+    number_of_gpus = torch.cuda.device_count()
+    print(f'Number of GPUs: {number_of_gpus}')
+
     # def imshow_tensor(image: Tensor) -> None:
     #     plt.imshow(transforms.ToPILImage()(image), interpolation="bicubic")
 
-    lfw_dataset = LFWImageDataset(abs_path, min_files=min_images)
+    lfw_dataset = LFWImageDataset(args.data_folder, min_files=min_images)
     data_module = PairedDataModule(lfw_dataset)
     data_module.setup()
 
     model = SiameseNetwork()
 
-    trainer = Trainer()
+    trainer = Trainer(gpus=number_of_gpus)
     trainer.fit(model, data_module)
 
 
