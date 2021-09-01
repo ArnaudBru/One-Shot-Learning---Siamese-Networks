@@ -1,19 +1,16 @@
+""" Main training module"""
 import argparse
 import os
 
-# import matplotlib.pyplot as plt
-# import pytorch_lightning as pl
-from pytorch_lightning import Trainer
 import torch
-# from torch import Tensor
-# from torchvision import transforms
+from pytorch_lightning import Trainer
 
 from datamodule.datamodule import LFWImageDataset, PairedDataModule
 from model.model import SiameseNetwork
 
 
 def main():
-
+    """Main function"""
     parser = argparse.ArgumentParser(
         description="Siamese Network - Face Recognition",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
@@ -31,14 +28,10 @@ def main():
     min_images = 0
 
     number_of_gpus = torch.cuda.device_count()
-    print(f'Number of GPUs: {number_of_gpus}')
-
-    # def imshow_tensor(image: Tensor) -> None:
-    #     plt.imshow(transforms.ToPILImage()(image), interpolation="bicubic")
+    print(f"Number of GPUs: {number_of_gpus}")
 
     lfw_dataset = LFWImageDataset(args.data_folder, min_files=min_images)
     data_module = PairedDataModule(lfw_dataset)
-    data_module.setup()
 
     model = SiameseNetwork()
 
