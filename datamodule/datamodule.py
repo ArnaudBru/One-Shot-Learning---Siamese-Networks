@@ -40,12 +40,13 @@ class LFWImageDataset(Dataset):
 
         # Add files if the class contains enough samples
         for root, _, files in os.walk(root_dir):
-            if len(files) > min_files:
-                files_dico[os.path.basename(root)] = [
-                    os.path.join(root, name) for name in files if name.endswith(".jpg")
-                ]
+            jpg_files = [
+                os.path.join(root, name) for name in files if name.endswith(".jpg")
+            ]
 
-                length += len(files)
+            if len(jpg_files) > min_files:
+                files_dico[os.path.basename(root)] = jpg_files
+                length += len(jpg_files)
 
         self.files_dico = files_dico
         self.length = length
@@ -180,7 +181,7 @@ def main():
     abs_path = os.path.dirname(os.path.realpath(__file__))
     abs_path = os.path.abspath(os.path.join(abs_path, os.pardir, data_path))
 
-    min_images = 30
+    min_images = 0
 
     def imshow_tensor(image: Tensor) -> None:
         plt.imshow(transforms.ToPILImage()(image), interpolation="bicubic")
@@ -194,7 +195,7 @@ def main():
         data_module.val_dataloader(),
         data_module.test_dataloader(),
     ]:
-        print(f'Length: {len(dataloader)}')
+        print(f"Length: {len(dataloader)}")
         images_1, images_2, labels = next(iter(dataloader))
         print(f"Feature batch shape: {images_1.size()}")
         print(f"Labels batch shape: {labels.size()}")
