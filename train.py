@@ -16,6 +16,8 @@ def main():
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument("--data_folder", default=None)
+    # parser = Trainer.add_argparse_args(parser)
+    parser = PairedDataModule.add_model_specific_args(parser)
 
     args = parser.parse_args()
 
