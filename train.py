@@ -16,7 +16,9 @@ def main():
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument("--data_folder", default=None)
-    # parser = Trainer.add_argparse_args(parser)
+    # Trainer API reference for possible flags
+    # https://pytorch-lightning.readthedocs.io/en/latest/api/pytorch_lightning.trainer.trainer.html
+    parser = Trainer.add_argparse_args(parser)
     parser = PairedDataModule.add_model_specific_args(parser)
 
     args = parser.parse_args()
@@ -29,15 +31,15 @@ def main():
 
     min_images = 0
 
-    number_of_gpus = torch.cuda.device_count()
-    print(f"Number of GPUs: {number_of_gpus}")
+    if args.gpus is None:
+        args.gpus = torch.cuda.device_count()
 
     lfw_dataset = LFWImageDataset(args.data_folder, min_files=min_images)
     data_module = PairedDataModule(lfw_dataset)
 
     model = SiameseNetwork()
 
-    trainer = Trainer(gpus=number_of_gpus)
+    trainer = Trainer.from_argparse_args(args)
     trainer.fit(model, data_module)
 
 
