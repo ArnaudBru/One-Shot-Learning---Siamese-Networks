@@ -7,7 +7,7 @@ import torch.nn.functional as F
 from torch import nn, optim, Tensor
 
 
-class ContrastiveLoss(torch.nn.Module):
+class ContrastiveLoss(nn.Module):
     """
     Contrastive loss function.
     Based on: http://yann.lecun.com/exdb/publis/pdf/hadsell-chopra-lecun-06.pdf
