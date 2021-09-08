@@ -23,6 +23,7 @@ def main():
 
     args = parser.parse_args()
 
+    # TODO: Remove when project is over
     if args.data_folder is None:
         data_path = "data\\lfw"
         abs_path = os.path.dirname(os.path.realpath(__file__))
@@ -37,7 +38,7 @@ def main():
     lfw_dataset = LFWImageDataset(args.data_folder, min_files=min_images)
     data_module = PairedDataModule(lfw_dataset)
 
-    model = SiameseNetwork()
+    model = SiameseNetwork(args.learning_rate, args.margin)
 
     trainer = Trainer.from_argparse_args(args)
     trainer.fit(model, data_module)

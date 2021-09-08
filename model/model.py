@@ -144,11 +144,11 @@ class SiameseNetwork(pl.LightningModule):
         learning_rate (float): learning rate of the optimizer
     """
 
-    def __init__(self) -> None:
+    def __init__(self, learning_rate: float, margin: float) -> None:
         super().__init__()
 
-        self.learning_rate = 1e-4
-        # TODO : margin as parameter
+        self.learning_rate = learning_rate
+        self.margin = margin
         self.criterion = ContrastiveLoss(margin=1.0)
 
         channels = 64

@@ -178,6 +178,7 @@ class PairedDataModule(pl.LightningDataModule):
     def add_model_specific_args(parent_parser: ArgumentParser) -> ArgumentParser:
         parser = ArgumentParser(parents=[parent_parser], add_help=False)
         parser.add_argument("--learning_rate", type=float, default=0.0001)
+        parser.add_argument("--margin", type=float, default=1.0)
         return parser
 
 
