@@ -210,6 +210,10 @@ class SiameseNetwork(pl.LightningModule):
         self.log("train_auc_step", self.roc_auc(preds, labels))
         return loss
 
+    def training_epoch_end(self):
+        """Computes epoch ROCAUC"""
+        self.log('train_auc_epoch', self.roc_auc.compute())
+
     def validation_step(self, batch, batch_idx) -> float:
         ref_images, other_images, labels = batch
         ref_output, other_output = self(ref_images, other_images)
