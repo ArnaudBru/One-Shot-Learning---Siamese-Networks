@@ -23,8 +23,8 @@ class ContrastiveLoss(nn.Module):
         """Computes euclidean distance between two tensors
 
         Args:
-            output1 (Tensor): 
-            output2 (Tensor): 
+            output1 (Tensor):
+            output2 (Tensor):
 
         Returns:
             float
@@ -218,6 +218,8 @@ class SiameseNetwork(pl.LightningModule):
         ref_images, other_images, labels = batch
         ref_output, other_output = self(ref_images, other_images)
         loss = self.criterion(ref_output, other_output, labels)
+
+        preds = ContrastiveLoss.euclidean_dist(ref_output, other_output).flatten()
 
         self.log("val_loss", loss, prog_bar=True, on_epoch=True)
         self.log("val_auc", self.roc_auc(preds, labels), on_epoch=True)
