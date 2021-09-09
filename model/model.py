@@ -206,13 +206,13 @@ class SiameseNetwork(pl.LightningModule):
 
         preds = ContrastiveLoss.euclidean_dist(ref_output, other_output).flatten()
 
-        self.log("train_loss", loss, on_epoch=True)
-        self.log("train_auc_step", self.roc_auc(preds, labels))
+        self.log("train_loss", loss, prog_bar=True, on_epoch=True)
+        self.log("train_auc", self.roc_auc(preds, labels), on_epoch=True)
         return loss
 
-    def training_epoch_end(self):
-        """Computes epoch ROCAUC"""
-        self.log('train_auc_epoch', self.roc_auc.compute())
+    # def training_epoch_end(self):
+    #     """Computes epoch ROCAUC"""
+    #     self.log('train_auc_epoch', self.roc_auc.compute())
 
     def validation_step(self, batch, batch_idx) -> float:
         ref_images, other_images, labels = batch
@@ -220,7 +220,12 @@ class SiameseNetwork(pl.LightningModule):
         loss = self.criterion(ref_output, other_output, labels)
 
         self.log("val_loss", loss, prog_bar=True, on_epoch=True)
+        self.log("val_auc", self.roc_auc(preds, labels), on_epoch=True)
         return loss
+
+    # def validation_epoch_end(self):
+    #     """Computes epoch ROCAUC"""
+    #     self.log('val_auc_epoch', self.roc_auc.compute())
 
     def test_step(self, batch, batch_idx) -> float:
         ref_images, other_images, labels = batch
