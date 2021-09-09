@@ -4,6 +4,7 @@ import os
 
 import torch
 from pytorch_lightning import Trainer
+from pytorch_lightning.callbacks.early_stopping import EarlyStopping
 
 from datamodule.datamodule import LFWImageDataset, PairedDataModule
 from model.model import SiameseNetwork
@@ -40,7 +41,8 @@ def main():
 
     model = SiameseNetwork(args.learning_rate, args.margin)
 
-    trainer = Trainer.from_argparse_args(args)
+    early_stop_callback = EarlyStopping(monitor="val_loss", min_delta=0.000, patience=10)
+    trainer = Trainer.from_argparse_args(args, early_stopping_callback=early_stop_callback)
     trainer.fit(model, data_module)
 
 
