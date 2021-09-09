@@ -165,7 +165,7 @@ class SiameseNetwork(pl.LightningModule):
         self.margin = margin
         self.criterion = ContrastiveLoss(margin=1.0)
 
-        self.roc_auc = AUROC()
+        self.roc_auc = AUROC(pos_label=1)
 
         channels = 64
 
@@ -204,7 +204,7 @@ class SiameseNetwork(pl.LightningModule):
         ref_output, other_output = self(ref_images, other_images)
         loss = self.criterion(ref_output, other_output, labels)
 
-        preds = ContrastiveLoss.euclidean_dist(ref_output, other_output)
+        preds = ContrastiveLoss.euclidean_dist(ref_output, other_output).flatten()
 
         self.log("train_loss", loss, on_epoch=True)
         self.log("train_auc_step", self.roc_auc(preds, labels))
