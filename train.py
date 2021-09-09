@@ -47,7 +47,7 @@ def main():
     )
     tb_logger = TensorBoardLogger("logs/")
     trainer = Trainer.from_argparse_args(
-        args, early_stopping_callback=early_stop_callback, logger=tb_logger
+        args, callbacks=[early_stop_callback], logger=tb_logger
     )
     trainer.fit(model, data_module)
 
