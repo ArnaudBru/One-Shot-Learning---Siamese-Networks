@@ -3,7 +3,6 @@ from typing import Optional, Tuple
 
 import pytorch_lightning as pl
 import torch
-import torch.nn.functional as F
 from torch import Tensor, nn, optim
 from torchmetrics import AUROC
 
@@ -17,9 +16,9 @@ class ContrastiveLoss(nn.Module):
     def __init__(self, margin: float) -> None:
         super().__init__()
         self.margin = margin
+        self.distance = nn.PairwiseDistance(p=2, keepdim=True)
 
-    @staticmethod
-    def euclidean_dist(output1: Tensor, output2: Tensor) -> float:
+    def euclidean_dist(self, output1: Tensor, output2: Tensor) -> float:
         """Computes euclidean distance between two tensors
 
         Args:
@@ -29,7 +28,7 @@ class ContrastiveLoss(nn.Module):
         Returns:
             float
         """
-        return F.pairwise_distance(output1, output2, keepdim=True)
+        return self.distance(output1, output2)
 
     def forward(self, output1: Tensor, output2: Tensor, label: Tensor) -> float:
         """Calculates Contrastive loss
@@ -43,6 +42,11 @@ class ContrastiveLoss(nn.Module):
             float
         """
         euclidean_distance = self.euclidean_dist(output1, output2)
+        print(
+            (1 - label) * torch.pow(euclidean_distance, 2)
+            + (label)
+            * torch.pow(torch.clamp(self.margin - euclidean_distance, min=0.0), 2)
+        )
         loss_contrastive = torch.mean(
             (1 - label) * torch.pow(euclidean_distance, 2)
             + (label)
@@ -199,12 +203,12 @@ class SiameseNetwork(pl.LightningModule):
         other_output = self._forward_one_network(other_images)
         return ref_output, other_output
 
-    def training_step(self, batch, batch_idx) -> float:
+    def training_step(self, batch) -> float:
         ref_images, other_images, labels = batch
         ref_output, other_output = self(ref_images, other_images)
         loss = self.criterion(ref_output, other_output, labels)
 
-        preds = ContrastiveLoss.euclidean_dist(ref_output, other_output).flatten()
+        preds = self.criterion.euclidean_dist(ref_output, other_output).flatten()
 
         self.log("train_loss", loss, prog_bar=True, on_epoch=True)
         self.log("train_auc", self.roc_auc(preds, labels), on_epoch=True)
@@ -214,12 +218,12 @@ class SiameseNetwork(pl.LightningModule):
     #     """Computes epoch ROCAUC"""
     #     self.log('train_auc_epoch', self.roc_auc.compute())
 
-    def validation_step(self, batch, batch_idx) -> float:
+    def validation_step(self, batch) -> float:
         ref_images, other_images, labels = batch
         ref_output, other_output = self(ref_images, other_images)
         loss = self.criterion(ref_output, other_output, labels)
 
-        preds = ContrastiveLoss.euclidean_dist(ref_output, other_output).flatten()
+        preds = self.criterion.euclidean_dist(ref_output, other_output).flatten()
 
         self.log("val_loss", loss, prog_bar=True, on_epoch=True)
         self.log("val_auc", self.roc_auc(preds, labels), on_epoch=True)
@@ -229,7 +233,7 @@ class SiameseNetwork(pl.LightningModule):
     #     """Computes epoch ROCAUC"""
     #     self.log('val_auc_epoch', self.roc_auc.compute())
 
-    def test_step(self, batch, batch_idx) -> float:
+    def test_step(self, batch) -> float:
         ref_images, other_images, labels = batch
         ref_output, other_output = self(ref_images, other_images)
         loss = self.criterion(ref_output, other_output, labels)
