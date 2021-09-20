@@ -51,6 +51,8 @@ def main():
     )
     trainer.fit(model, data_module)
 
+    # trainer.test(...)
+
 
 if __name__ == "__main__":
     main()

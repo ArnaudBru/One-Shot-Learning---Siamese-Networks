@@ -18,17 +18,17 @@ class ContrastiveLoss(nn.Module):
         self.margin = margin
         self.distance = nn.PairwiseDistance(p=2, keepdim=True)
 
-    def euclidean_dist(self, output1: Tensor, output2: Tensor) -> float:
-        """Computes euclidean distance between two tensors
+    # def euclidean_dist(self, output1: Tensor, output2: Tensor) -> float:
+    #     """Computes euclidean distance between two tensors
 
-        Args:
-            output1 (Tensor):
-            output2 (Tensor):
+    #     Args:
+    #         output1 (Tensor):
+    #         output2 (Tensor):
 
-        Returns:
-            float
-        """
-        return self.distance(output1, output2)
+    #     Returns:
+    #         float
+    #     """
+    #     return self.distance(output1, output2)
 
     def forward(self, output1: Tensor, output2: Tensor, label: Tensor) -> float:
         """Calculates Contrastive loss
@@ -41,7 +41,7 @@ class ContrastiveLoss(nn.Module):
         Returns:
             float
         """
-        euclidean_distance = self.euclidean_dist(output1, output2)
+        euclidean_distance = self.distance(output1, output2)
         print(
             (1 - label) * torch.pow(euclidean_distance, 2)
             + (label)
@@ -208,7 +208,7 @@ class SiameseNetwork(pl.LightningModule):
         ref_output, other_output = self(ref_images, other_images)
         loss = self.criterion(ref_output, other_output, labels)
 
-        preds = self.criterion.euclidean_dist(ref_output, other_output).flatten()
+        preds = self.criterion.distance(ref_output, other_output).flatten()
 
         self.log("train_loss", loss, prog_bar=True, on_epoch=True)
         self.log("train_auc", self.roc_auc(preds, labels), on_epoch=True)
@@ -223,7 +223,7 @@ class SiameseNetwork(pl.LightningModule):
         ref_output, other_output = self(ref_images, other_images)
         loss = self.criterion(ref_output, other_output, labels)
 
-        preds = self.criterion.euclidean_dist(ref_output, other_output).flatten()
+        preds = self.criterion.distance(ref_output, other_output).flatten()
 
         self.log("val_loss", loss, prog_bar=True, on_epoch=True)
         self.log("val_auc", self.roc_auc(preds, labels), on_epoch=True)
