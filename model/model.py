@@ -18,18 +18,6 @@ class ContrastiveLoss(nn.Module):
         self.margin = margin
         self.distance = nn.PairwiseDistance(p=2, keepdim=True)
 
-    # def euclidean_dist(self, output1: Tensor, output2: Tensor) -> float:
-    #     """Computes euclidean distance between two tensors
-
-    #     Args:
-    #         output1 (Tensor):
-    #         output2 (Tensor):
-
-    #     Returns:
-    #         float
-    #     """
-    #     return self.distance(output1, output2)
-
     def forward(self, output1: Tensor, output2: Tensor, label: Tensor) -> float:
         """Calculates Contrastive loss
 
@@ -60,7 +48,7 @@ class ConvolutionBlock(nn.Module):
     """Convolution Block with ReLU activation, BatchNorm and Max-pooling (Optional)
 
     Attributes:
-        conv (TYPE):
+        conv (nn.Module):
     """
 
     def __init__(
@@ -111,7 +99,7 @@ class FullyConnectedBlock(nn.Module):
     Flattening can be added prior to the block (Optional)
 
     Attributes:
-        fully_connected (TYPE):
+        fully_connected (nn.Module):
     """
 
     def __init__(
@@ -153,12 +141,12 @@ class SiameseNetwork(pl.LightningModule):
     """
 
     Attributes:
-        conv_block_1 (TYPE): Convolutional block 1
-        conv_block_2 (TYPE): Convolutional block 2
-        conv_block_3 (TYPE): Convolutional block 3
-        conv_block_4 (TYPE): Convolutional block 4
+        conv_block_1 (ConvolutionBlock): Convolutional block 1
+        conv_block_2 (ConvolutionBlock): Convolutional block 2
+        conv_block_3 (ConvolutionBlock): Convolutional block 3
+        conv_block_4 (ConvolutionBlock): Convolutional block 4
         criterion (TYPE): Loss function
-        fc_block (TYPE): Fully Connected block
+        fc_block (FullyConnectedBlock): Fully Connected block
         learning_rate (float): learning rate of the optimizer
     """
 
@@ -203,7 +191,7 @@ class SiameseNetwork(pl.LightningModule):
         other_output = self._forward_one_network(other_images)
         return ref_output, other_output
 
-    def training_step(self, batch) -> float:
+    def training_step(self, batch, batch_idx) -> float:
         ref_images, other_images, labels = batch
         ref_output, other_output = self(ref_images, other_images)
         loss = self.criterion(ref_output, other_output, labels)
@@ -218,7 +206,7 @@ class SiameseNetwork(pl.LightningModule):
     #     """Computes epoch ROCAUC"""
     #     self.log('train_auc_epoch', self.roc_auc.compute())
 
-    def validation_step(self, batch) -> float:
+    def validation_step(self, batch, batch_idx) -> float:
         ref_images, other_images, labels = batch
         ref_output, other_output = self(ref_images, other_images)
         loss = self.criterion(ref_output, other_output, labels)
@@ -233,7 +221,7 @@ class SiameseNetwork(pl.LightningModule):
     #     """Computes epoch ROCAUC"""
     #     self.log('val_auc_epoch', self.roc_auc.compute())
 
-    def test_step(self, batch) -> float:
+    def test_step(self, batch, batch_idx) -> float:
         ref_images, other_images, labels = batch
         ref_output, other_output = self(ref_images, other_images)
         loss = self.criterion(ref_output, other_output, labels)
