@@ -4,7 +4,7 @@ import os
 
 import torch
 from pytorch_lightning import Trainer
-from pytorch_lightning.callbacks import ModelCheckpoint, LearningRateMonitor
+from pytorch_lightning.callbacks import LearningRateMonitor, ModelCheckpoint
 from pytorch_lightning.callbacks.early_stopping import EarlyStopping
 from pytorch_lightning.loggers import TensorBoardLogger
 
@@ -44,6 +44,7 @@ def main():
 
     model = SiameseNetwork(args.learning_rate, args.margin)
 
+    # TODO: Remove unecessary callbacks
     checkpoint_callback = ModelCheckpoint(
         monitor="val_loss",
         filename="siamese-network-{epoch:02d}-{val_loss:.2f}",
@@ -51,17 +52,18 @@ def main():
         mode="max",
     )
 
-    # lr_monitor = LearningRateMonitor()
+    lr_monitor = LearningRateMonitor()
 
-    # early_stop_callback = EarlyStopping(
-    #     monitor="val_loss", min_delta=0.000, patience=10
-    # )
+    early_stop_callback = EarlyStopping(
+        monitor="val_loss", min_delta=0.000, patience=10
+    )
 
     tb_logger = TensorBoardLogger("logs/")
 
     trainer = Trainer.from_argparse_args(
         # args, callbacks=[early_stop_callback, checkpoint_callback, lr_monitor], logger=tb_logger
-        args, callbacks=[checkpoint_callback], logger=tb_logger
+        args, callbacks=[early_stop_callback, checkpoint_callback], logger=tb_logger
+        # args, callbacks=[early_stop_callback], logger=tb_logger
     )
     trainer.fit(model, data_module)
 
