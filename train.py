@@ -4,7 +4,7 @@ import os
 
 import torch
 from pytorch_lightning import Trainer
-from pytorch_lightning.callbacks import ModelCheckpoint
+from pytorch_lightning.callbacks import ModelCheckpoint, LearningRateMonitor
 from pytorch_lightning.callbacks.early_stopping import EarlyStopping
 from pytorch_lightning.loggers import TensorBoardLogger
 
@@ -20,7 +20,13 @@ def main():
     )
     parser.add_argument("--data_folder", default=None)
 
-    # saves a file like: my/path/sample-mnist-epoch=02-val_loss=0.32.ckpt
+    # Trainer API reference for possible flags
+    # https://pytorch-lightning.readthedocs.io/en/latest/api/pytorch_lightning.trainer.trainer.html
+    parser = Trainer.add_argparse_args(parser)
+    parser = PairedDataModule.add_model_specific_args(parser)
+
+    args = parser.parse_args()
+
     checkpoint_callback = ModelCheckpoint(
         monitor="val_auc",
         filename="siamese-network-{epoch:02d}-{val_auc:.2f}",
@@ -28,12 +34,7 @@ def main():
         mode="max",
     )
 
-    # Trainer API reference for possible flags
-    # https://pytorch-lightning.readthedocs.io/en/latest/api/pytorch_lightning.trainer.trainer.html
-    parser = Trainer.add_argparse_args(parser)
-    parser = PairedDataModule.add_model_specific_args(parser)
-
-    args = parser.parse_args()
+    lr_monitor = LearningRateMonitor()
 
     # TODO: Remove when project is over
     if args.data_folder is None:
@@ -57,7 +58,7 @@ def main():
     )
     tb_logger = TensorBoardLogger("logs/")
     trainer = Trainer.from_argparse_args(
-        args, callbacks=[early_stop_callback, checkpoint_callback], logger=tb_logger
+        args, callbacks=[early_stop_callback, checkpoint_callback, lr_monitor], logger=tb_logger
     )
     trainer.fit(model, data_module)
 
