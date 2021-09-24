@@ -27,15 +27,6 @@ def main():
 
     args = parser.parse_args()
 
-    checkpoint_callback = ModelCheckpoint(
-        monitor="val_auc",
-        filename="siamese-network-{epoch:02d}-{val_auc:.2f}",
-        save_top_k=3,
-        mode="max",
-    )
-
-    lr_monitor = LearningRateMonitor()
-
     # TODO: Remove when project is over
     if args.data_folder is None:
         data_path = "data\\lfw"
@@ -53,12 +44,24 @@ def main():
 
     model = SiameseNetwork(args.learning_rate, args.margin)
 
-    early_stop_callback = EarlyStopping(
-        monitor="val_loss", min_delta=0.000, patience=10
+    checkpoint_callback = ModelCheckpoint(
+        monitor="val_auc",
+        filename="siamese-network-{epoch:02d}-{val_auc:.2f}",
+        save_top_k=3,
+        mode="max",
     )
+
+    # lr_monitor = LearningRateMonitor()
+
+    # early_stop_callback = EarlyStopping(
+    #     monitor="val_loss", min_delta=0.000, patience=10
+    # )
+
     tb_logger = TensorBoardLogger("logs/")
+
     trainer = Trainer.from_argparse_args(
-        args, callbacks=[early_stop_callback, checkpoint_callback, lr_monitor], logger=tb_logger
+        # args, callbacks=[early_stop_callback, checkpoint_callback, lr_monitor], logger=tb_logger
+        args, callbacks=[checkpoint_callback], logger=tb_logger
     )
     trainer.fit(model, data_module)
 
