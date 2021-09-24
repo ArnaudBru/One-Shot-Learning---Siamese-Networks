@@ -45,8 +45,8 @@ def main():
     model = SiameseNetwork(args.learning_rate, args.margin)
 
     checkpoint_callback = ModelCheckpoint(
-        monitor="val_auc",
-        filename="siamese-network-{epoch:02d}-{val_auc:.2f}",
+        monitor="val_loss",
+        filename="siamese-network-{epoch:02d}-{val_loss:.2f}",
         save_top_k=3,
         mode="max",
     )
