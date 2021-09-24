@@ -4,6 +4,7 @@ import os
 
 import torch
 from pytorch_lightning import Trainer
+from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.callbacks.early_stopping import EarlyStopping
 from pytorch_lightning.loggers import TensorBoardLogger
 
@@ -18,6 +19,15 @@ def main():
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument("--data_folder", default=None)
+
+    # saves a file like: my/path/sample-mnist-epoch=02-val_loss=0.32.ckpt
+    checkpoint_callback = ModelCheckpoint(
+        monitor="val_auc",
+        filename="siamese-network-{epoch:02d}-{val_auc:.2f}",
+        save_top_k=3,
+        mode="max",
+    )
+
     # Trainer API reference for possible flags
     # https://pytorch-lightning.readthedocs.io/en/latest/api/pytorch_lightning.trainer.trainer.html
     parser = Trainer.add_argparse_args(parser)
@@ -47,7 +57,7 @@ def main():
     )
     tb_logger = TensorBoardLogger("logs/")
     trainer = Trainer.from_argparse_args(
-        args, callbacks=[early_stop_callback], logger=tb_logger
+        args, callbacks=[early_stop_callback, checkpoint_callback], logger=tb_logger
     )
     trainer.fit(model, data_module)
 
