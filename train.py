@@ -49,7 +49,7 @@ def main():
         monitor="val_loss",
         filename="siamese-network-{epoch:02d}-{val_loss:.2f}",
         save_top_k=3,
-        mode="max",
+        mode="min",
     )
 
     lr_monitor = LearningRateMonitor()
