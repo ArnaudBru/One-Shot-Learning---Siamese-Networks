@@ -231,10 +231,10 @@ class SiameseNetwork(pl.LightningModule):
 
     @staticmethod
     def add_model_specific_args(parent_parser: ArgumentParser) -> ArgumentParser:
-        """ Adds model specific arguments to the parser
+        """Adds model specific arguments to the parser
 
         Args:
-            parent_parser (ArgumentParser): 
+            parent_parser (ArgumentParser):
 
         Returns:
             ArgumentParser
@@ -242,4 +242,5 @@ class SiameseNetwork(pl.LightningModule):
         parser = ArgumentParser(parents=[parent_parser], add_help=False)
         parser.add_argument("--learning_rate", type=float, default=0.0001)
         parser.add_argument("--margin", type=float, default=1.0)
+        parser.add_argument("--model_path", type=str, default=None)
         return parser

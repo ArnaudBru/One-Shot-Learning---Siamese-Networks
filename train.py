@@ -42,7 +42,12 @@ def main():
     lfw_dataset = LFWImageDataset(args.data_folder, min_files=min_images)
     data_module = PairedDataModule(lfw_dataset)
 
-    model = SiameseNetwork(args.learning_rate, args.margin)
+    if args.model_path is not None:
+        model = SiameseNetwork.load_from_checkpoint(
+            args.model_path, learning_rate=args.learning_rate, margin=args.margin
+        )
+    else:
+        model = SiameseNetwork(args.learning_rate, args.margin)
 
     # TODO: Remove unecessary callbacks
     checkpoint_callback = ModelCheckpoint(
