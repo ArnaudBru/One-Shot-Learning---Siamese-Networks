@@ -23,7 +23,7 @@ def main():
     # Trainer API reference for possible flags
     # https://pytorch-lightning.readthedocs.io/en/latest/api/pytorch_lightning.trainer.trainer.html
     parser = Trainer.add_argparse_args(parser)
-    parser = PairedDataModule.add_model_specific_args(parser)
+    parser = SiameseNetwork.add_model_specific_args(parser)
 
     args = parser.parse_args()
 
@@ -62,7 +62,9 @@ def main():
 
     trainer = Trainer.from_argparse_args(
         # args, callbacks=[early_stop_callback, checkpoint_callback, lr_monitor], logger=tb_logger
-        args, callbacks=[early_stop_callback, checkpoint_callback], logger=tb_logger
+        args,
+        callbacks=[early_stop_callback, checkpoint_callback],
+        logger=tb_logger
         # args, callbacks=[early_stop_callback], logger=tb_logger
     )
     trainer.fit(model, data_module)

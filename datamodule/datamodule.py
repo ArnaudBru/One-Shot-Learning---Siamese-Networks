@@ -4,7 +4,6 @@ a public benchmark for face verification, also known as pair matching.
 """
 import os
 import random
-from argparse import ArgumentParser
 from typing import Callable, List, Optional, Tuple
 
 import numpy as np
@@ -173,13 +172,6 @@ class PairedDataModule(pl.LightningDataModule):
         return DataLoader(
             self.paired_dataset, batch_size=self.batch_size, sampler=test_sampler
         )
-
-    @staticmethod
-    def add_model_specific_args(parent_parser: ArgumentParser) -> ArgumentParser:
-        parser = ArgumentParser(parents=[parent_parser], add_help=False)
-        parser.add_argument("--learning_rate", type=float, default=0.0001)
-        parser.add_argument("--margin", type=float, default=1.0)
-        return parser
 
 
 def main():

@@ -1,4 +1,5 @@
 """Model and Loss definition"""
+from argparse import ArgumentParser
 from typing import Optional, Tuple
 
 import pytorch_lightning as pl
@@ -227,3 +228,18 @@ class SiameseNetwork(pl.LightningModule):
     def configure_optimizers(self) -> optim.Optimizer:
         optimizer = optim.Adam(self.parameters(), lr=self.learning_rate)
         return optimizer
+
+    @staticmethod
+    def add_model_specific_args(parent_parser: ArgumentParser) -> ArgumentParser:
+        """ Adds model specific arguments to the parser
+
+        Args:
+            parent_parser (ArgumentParser): 
+
+        Returns:
+            ArgumentParser
+        """
+        parser = ArgumentParser(parents=[parent_parser], add_help=False)
+        parser.add_argument("--learning_rate", type=float, default=0.0001)
+        parser.add_argument("--margin", type=float, default=1.0)
+        return parser
