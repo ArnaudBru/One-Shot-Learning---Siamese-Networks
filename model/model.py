@@ -1,6 +1,6 @@
 """Model and Loss definition"""
 from argparse import ArgumentParser
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Union
 
 import pytorch_lightning as pl
 import torch
@@ -51,8 +51,8 @@ class ConvolutionBlock(nn.Module):
         self,
         in_channels: int,
         out_channels: int,
-        kernel_size: int,
-        padding: int,
+        kernel_size: int = 3,
+        padding: Union[int, str] = 'same',
         max_pooling: Optional[bool] = True,
     ) -> None:
         super().__init__()
@@ -158,26 +158,43 @@ class SiameseNetwork(pl.LightningModule):
         channels = 64
 
         self.conv_block_1 = ConvolutionBlock(
-            3, channels, kernel_size=5, padding=2, max_pooling=True
+            3, channels, kernel_size=3, padding=1, max_pooling=False
         )
         self.conv_block_2 = ConvolutionBlock(
-            channels, 2 * channels, kernel_size=5, padding=2, max_pooling=True
+            channels, 2 * channels, kernel_size=3, padding=1, max_pooling=True
         )
         self.conv_block_3 = ConvolutionBlock(
-            2 * channels, 4 * channels, kernel_size=3, padding=1, max_pooling=True
+            2 * channels, 2 * channels, kernel_size=3, padding=1, max_pooling=False
         )
         self.conv_block_4 = ConvolutionBlock(
-            4 * channels, 8 * channels, kernel_size=3, padding=1, max_pooling=False
+            2 * channels, 2 * channels, kernel_size=3, padding=1, max_pooling=False
+        )
+        self.conv_block_5 = ConvolutionBlock(
+            2 * channels, 4 * channels, kernel_size=3, padding=1, max_pooling=True
+        )
+        self.conv_block_6 = ConvolutionBlock(
+            4 * channels, 4 * channels, kernel_size=3, padding=1, max_pooling=False
         )
 
-        self.fc_block = FullyConnectedBlock(492032, 8, flatten=True)
+        self.fc_block = FullyConnectedBlock(128*12*12, 64, flatten=True)
 
     def _forward_one_network(self, x: Tensor) -> Tensor:
+        print("-----------------")
+        print(x.shape)
         x = self.conv_block_1(x)
+        print(x.shape)
         x = self.conv_block_2(x)
+        print(x.shape)
         x = self.conv_block_3(x)
+        print(x.shape)
         x = self.conv_block_4(x)
+        print(x.shape)
+        x = self.conv_block_5(x)
+        print(x.shape)
+        x = self.conv_block_6(x)
+        print(x.shape)
         x = self.fc_block(x)
+        print(x.shape)
         return x
 
     def forward(
