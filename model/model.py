@@ -176,7 +176,7 @@ class SiameseNetwork(pl.LightningModule):
             4 * channels, 4 * channels, kernel_size=3, padding=1, max_pooling=False
         )
 
-        self.fc_block = FullyConnectedBlock(128*12*12, 64, flatten=True)
+        self.fc_block = FullyConnectedBlock(256*62*62, 64, flatten=True)
 
     def _forward_one_network(self, x: Tensor) -> Tensor:
         print("-----------------")
@@ -205,7 +205,7 @@ class SiameseNetwork(pl.LightningModule):
         return ref_output, other_output
 
     def training_step(self, batch, batch_idx) -> float:
-        ref_images, other_images, labels = batch
+        (ref_images, other_images), labels = batch
         ref_output, other_output = self(ref_images, other_images)
         loss = self.criterion(ref_output, other_output, labels)
 
@@ -220,7 +220,7 @@ class SiameseNetwork(pl.LightningModule):
     #     self.log('train_auc_epoch', self.roc_auc.compute())
 
     def validation_step(self, batch, batch_idx) -> float:
-        ref_images, other_images, labels = batch
+        (ref_images, other_images), labels = batch
         ref_output, other_output = self(ref_images, other_images)
         loss = self.criterion(ref_output, other_output, labels)
 
@@ -235,7 +235,7 @@ class SiameseNetwork(pl.LightningModule):
     #     self.log('val_auc_epoch', self.roc_auc.compute())
 
     def test_step(self, batch, batch_idx) -> float:
-        ref_images, other_images, labels = batch
+        (ref_images, other_images), labels = batch
         ref_output, other_output = self(ref_images, other_images)
         loss = self.criterion(ref_output, other_output, labels)
 
