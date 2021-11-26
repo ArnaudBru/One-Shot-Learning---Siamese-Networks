@@ -8,7 +8,7 @@ from pytorch_lightning.callbacks import LearningRateMonitor, ModelCheckpoint
 from pytorch_lightning.callbacks.early_stopping import EarlyStopping
 from pytorch_lightning.loggers import TensorBoardLogger
 
-from datamodule.datamodule import LFWImageDataset, PairedDataModule
+from datamodule.datamodule import LFWPairedImageDataset, LFWTripletImageDataset, DataModule
 from model.model import SiameseNetwork
 
 
@@ -39,8 +39,8 @@ def main():
     if args.gpus is None:
         args.gpus = torch.cuda.device_count()
 
-    lfw_dataset = LFWImageDataset(args.data_folder, min_files=min_images)
-    data_module = PairedDataModule(lfw_dataset)
+    lfw_dataset = LFWPairedImageDataset(args.data_folder, min_files=min_images)
+    data_module = DataModule(lfw_dataset)
 
     if args.model_path is not None:
         model = SiameseNetwork.load_from_checkpoint(
