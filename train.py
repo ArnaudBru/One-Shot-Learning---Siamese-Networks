@@ -8,7 +8,8 @@ from pytorch_lightning.callbacks import LearningRateMonitor, ModelCheckpoint
 from pytorch_lightning.callbacks.early_stopping import EarlyStopping
 from pytorch_lightning.loggers import TensorBoardLogger
 
-from datamodule.datamodule import LFWPairedImageDataset, LFWTripletImageDataset, DataModule
+from datamodule.datamodule import (DataModule, LFWPairedImageDataset,
+                                   LFWTripletImageDataset)
 from model.model import SiameseNetwork
 
 
