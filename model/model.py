@@ -167,16 +167,16 @@ class SiameseNetwork(pl.LightningModule):
             2 * channels, 2 * channels, kernel_size=3, padding=1, max_pooling=False
         )
         self.conv_block_4 = ConvolutionBlock(
-            2 * channels, 2 * channels, kernel_size=3, padding=1, max_pooling=False
+            2 * channels, 2 * channels, kernel_size=3, padding=1, max_pooling=True
         )
         self.conv_block_5 = ConvolutionBlock(
             2 * channels, 4 * channels, kernel_size=3, padding=1, max_pooling=True
         )
         self.conv_block_6 = ConvolutionBlock(
-            4 * channels, 4 * channels, kernel_size=3, padding=1, max_pooling=False
+            4 * channels, 4 * channels, kernel_size=3, padding=1, max_pooling=True
         )
 
-        self.fc_block = FullyConnectedBlock(256*62*62, 64, flatten=True)
+        self.fc_block = FullyConnectedBlock(256*15*15, 64, flatten=True)
 
     def _forward_one_network(self, x: Tensor) -> Tensor:
         print("-----------------")
