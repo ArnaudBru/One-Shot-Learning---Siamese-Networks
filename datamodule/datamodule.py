@@ -110,6 +110,7 @@ class LFWPairedImageDataset(Dataset):
         """
         return random.sample(list(dictionnary.keys()), k=2)
 
+
 class LFWTripletImageDataset(Dataset):
 
     """
@@ -192,7 +193,7 @@ class LFWTripletImageDataset(Dataset):
     @staticmethod
     def _select_other_class(dictionnary: dict, anchor_class: str) -> str:
         """Select a class different from anchor_class in dictionnary's keys
-        In practice select two distinct classes 
+        In practice select two distinct classes
         returns the first one if different from anchor class
         else returns the second class
 
@@ -205,7 +206,6 @@ class LFWTripletImageDataset(Dataset):
         """
         classes = random.sample(list(dictionnary.keys()), k=2)
         return classes[0] if classes[0] != anchor_class else classes[1]
-
 
 
 class DataModule(pl.LightningDataModule):
@@ -224,7 +224,7 @@ class DataModule(pl.LightningDataModule):
     def __init__(
         self,
         dataset: Dataset,
-        batch_size: Optional[int] = 64,
+        batch_size: Optional[int] = 32,
         train_size: Optional[float] = 0.8,
         val_size: Optional[float] = 0.1,
     ) -> None:
@@ -260,9 +260,7 @@ class DataModule(pl.LightningDataModule):
 
     def val_dataloader(self) -> DataLoader:
         val_sampler = SubsetRandomSampler(self.val_idx)
-        return DataLoader(
-            self.dataset, batch_size=self.batch_size, sampler=val_sampler
-        )
+        return DataLoader(self.dataset, batch_size=self.batch_size, sampler=val_sampler)
 
     def test_dataloader(self) -> DataLoader:
         test_sampler = SubsetRandomSampler(self.test_idx)
@@ -272,11 +270,23 @@ class DataModule(pl.LightningDataModule):
 
 
 def imshow_tensor(image: Tensor) -> None:
+    """Show image from tensor
+
+    Args:
+        image (Tensor):
+    """
     plt.imshow(transforms.ToPILImage()(image), interpolation="bicubic")
 
 
-def showcase_dataset(dataset: Dataset, plot_images: Optional[bool] = True):
+def showcase_dataset(dataset: Dataset, plot_samples: Optional[bool] = True):
+    """Turns dataset into DataModule
+    Shows different charactiristics
+    Optionnaly plots samples
 
+    Args:
+        dataset (Dataset):
+        plot_samples (Optional[bool], optional):
+    """
     data_module = DataModule(dataset)
     data_module.setup()
 
@@ -291,7 +301,7 @@ def showcase_dataset(dataset: Dataset, plot_images: Optional[bool] = True):
         print(f"Labels batch shape: {labels.size()}")
         label = labels[0]
         print(f"Label: {label}")
-        if plot_images:
+        if plot_samples:
             for images in images_tuples:
                 image = images[0].squeeze()
                 plt.figure()
@@ -308,13 +318,13 @@ def main():
 
     min_images = 0
 
-    print('Test Pair Dataset')
-    print('-----------------')
+    print("Test Pair Dataset")
+    print("-----------------")
     pair_dataset = LFWPairedImageDataset(abs_path, min_files=min_images)
     showcase_dataset(pair_dataset)
 
-    print('Test Triplet Dataset')
-    print('-----------------')
+    print("Test Triplet Dataset")
+    print("-----------------")
     triplet_dataset = LFWTripletImageDataset(abs_path, min_files=min_images)
     showcase_dataset(triplet_dataset)
 
