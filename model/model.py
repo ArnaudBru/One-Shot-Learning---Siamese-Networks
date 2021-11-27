@@ -52,7 +52,7 @@ class ConvolutionBlock(nn.Module):
         in_channels: int,
         out_channels: int,
         kernel_size: int = 3,
-        padding: Union[int, str] = "same",
+        padding: Union[int, str] = 'same',
         max_pooling: Optional[bool] = True,
     ) -> None:
         super().__init__()
@@ -179,22 +179,17 @@ class SiameseNetwork(pl.LightningModule):
         self.fc_block = FullyConnectedBlock(256 * 15 * 15, 64, flatten=True)
 
     def _forward_one_network(self, x: Tensor) -> Tensor:
-        print("-----------------")
-        print(x.shape)
+        # TODO: remove comments
+        #print("-----------------")
         x = self.conv_block_1(x)
-        print(x.shape)
         x = self.conv_block_2(x)
-        print(x.shape)
         x = self.conv_block_3(x)
-        print(x.shape)
         x = self.conv_block_4(x)
-        print(x.shape)
         x = self.conv_block_5(x)
-        print(x.shape)
         x = self.conv_block_6(x)
-        print(x.shape)
+        #print(x.shape)
         x = self.fc_block(x)
-        print(x.shape)
+        #print(x.shape)
         return x
 
     def forward(
